@@ -1,0 +1,179 @@
+<!doctype html>
+<html>
+  <head>
+
+    <style>
+	p.normal{font-family: 'Noto Serif', serif;}
+	h3{font-family: 'Noto Serif', serif;}
+	form.q{font-family: 'Noto Serif', serif;}
+	button {background: #abdbe3; border-radius: 20px; line-height: 3.0; width: 150px;
+        overflow: hidden; }
+	div.cr{text-align: center;}
+	body {background: #f2f0e1;}
+.parent {
+  margin: 1rem;
+  padding: 2rem 2rem;
+  text-align: center;
+}
+.child {
+  display: inline-block;
+  padding: 1rem 1rem;
+  vertical-align: middle;
+}
+
+   </style>
+   <meta charset="utf-8">
+
+    <title>This is the title of the webpage!</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif&display=swap" rel="stylesheet"> 
+  <script src="https://d3js.org/d3.v4.js"></script>
+  </head>
+  <body>
+
+<h3>Prueba: Vacunas</h3>
+<p class="normal">
+
+Se despliegan los datos de <i>estimados de inmunidad</i> por grupos de edad, en varias versiones.</p>
+
+<!-- Create a div where the graph will take place -->
+<div id="my_dataviz"></div>
+
+Otra gráfica.</p>
+
+<div class="parent">
+	<div class="child" id="my_dataviz2"></div>
+	<div class="child" id="my_dataviz3">
+		COLOR 1</p>
+		COLOR 2</p>
+		COLOR 3</p>
+		COLOR 4</p>
+	</div>
+</div>
+
+<!-- Source: https://www.d3-graph-gallery.com/graph/line_basic.html -->
+<script>
+// set the dimensions and margins of the graph
+var margin = {top: 10, right: 30, bottom: 30, left: 60},
+    width = 460 - margin.left - margin.right,
+    height = 400 - margin.top - margin.bottom;
+
+// append the svg object to the body of the page
+var svg = d3.select("#my_dataviz")
+  .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")");
+
+//Read the data
+d3.csv("./InmunidadEdadSemana4.csv",
+
+  // Now I can use this dataset:
+  function(data) {
+
+	console.log( d3.extent(data, function(d) { return d.wk; }) );
+	//console.log(data);
+
+    // Add X axis --> it is a date format
+    var x = d3.scaleLinear()
+      .domain(["0","52"])
+      .range([ 0, width ]);
+    svg.append("g")
+      .attr("transform", "translate(0," + height + ")")
+      .call(d3.axisBottom(x));
+
+    // Add Y axis
+    var y = d3.scaleLinear()
+      .domain(["0", "80"])
+      .range([ height, 0 ]);
+    svg.append("g")
+      .call(d3.axisLeft(y));
+
+    // Add the line
+    svg.append("path")
+      .datum(data)
+      .attr("fill", "none")
+      .attr("stroke", "steelblue")
+      .attr("stroke-width", 1.5)
+      .attr("d", d3.line()
+        .x(function(d) { return x(d.wk) })
+        .y(function(d) { return y(d.immPct) })
+        )
+
+}); // data
+
+</script>
+
+<script>
+var margin2 = {top: 10, right: 30, bottom: 30, left: 60},
+    width2 = 460 - margin.left - margin.right,
+    height2 = 400 - margin.top - margin.bottom;
+
+// append the svg object to the body of the page
+var svg2 = d3.select("#my_dataviz2")
+  .append("svg")
+    .attr("width", width2 + margin2.left + margin2.right)
+    .attr("height", height2 + margin2.top + margin2.bottom)
+  .append("g")
+    .attr("transform",
+          "translate(" + margin2.left + "," + margin2.top + ")");
+
+// var svg3 = d3.select("#my_dataviz2").append("svg");
+// svg3.attr('height', "100").attr('width', "100").append("text").text("HOLA");
+//$('<p>' + 'HOLA' + '</p>').appendTo('#my_dataviz2');
+//svg2.append('HOLA').attr("dx","-20px");
+//$('#my_dataviz2').append('HOLA').attr("dx","-20px");
+
+d3.csv("./InmunidadEdadSemana3.csv", function(data) {
+
+  // group the data: I want to draw one line per group
+  var sumstat = d3.nest() // nest function allows to group the calculation per level of a factor
+    .key(function(d) { return d.ageGrp;})
+    .entries(data);
+
+    // Add X axis --> it is a date format
+    var x = d3.scaleLinear()
+      .domain(["0","52"])
+      .range([ 0, width2 ]);
+    svg2.append("g")
+      .attr("transform", "translate(0," + height2 + ")")
+      .call(d3.axisBottom(x));
+
+    // Add Y axis
+    var y = d3.scaleLinear()
+      .domain(["0", "90"])
+      .range([ height2, 0 ]);
+    svg2.append("g")
+      .call(d3.axisLeft(y));
+
+  // color palette
+  var res = sumstat.map(function(d){ return d.key }) // list of group names
+  var color = d3.scaleOrdinal()
+    .domain(res)
+    .range(['#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00','#ffff33','#a65628','#f781bf','#999999'])
+
+  // Draw the line
+  svg2.selectAll(".line")
+      .data(sumstat)
+      .enter()
+      .append("path")
+        .attr("fill", "none")
+        .attr("stroke", function(d){ return color(d.key) })
+        .attr("stroke-width", 1.5)
+        .attr("d", function(d){
+          return d3.line()
+            .x(function(d) { return x(d.wk); })
+            .y(function(d) { return y(+d.immPct); })
+            (d.values)
+        })
+
+})
+
+</script>
+
+</body>
+</html>
